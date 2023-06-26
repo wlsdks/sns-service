@@ -9,9 +9,11 @@ import com.study.sns.model.User;
 import com.study.sns.controller.request.UserJoinRequest;
 import com.study.sns.service.UserService;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -31,7 +33,7 @@ public class UserControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    @Autowired
+    @MockBean
     private UserService userService;
 
     @Test
@@ -56,10 +58,10 @@ public class UserControllerTest {
         String username = "userName";
         String password = "password";
 
-        when(userService.join(username,password)).thenThrow(new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
+        when(userService.join(username,password)).thenThrow(new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME));
 
         //성공하는 경우
-        mockMvc.perform(post("api/v1/users/join")
+        mockMvc.perform(post("/api/v1/users/join")
                         .contentType(MediaType.APPLICATION_JSON)
                         // TODO: add request body
                         .content(objectMapper.writeValueAsBytes(new UserJoinRequest(username, password)))
@@ -89,7 +91,7 @@ public class UserControllerTest {
         String username = "userName";
         String password = "password";
 
-        when(userService.login(username, password)).thenThrow(new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
+        when(userService.login(username, password)).thenThrow(new SnsApplicationException(ErrorCode.USER_NOT_FOUND));
 
         //성공하는 경우
         mockMvc.perform(post("/api/v1/users/login")
@@ -105,7 +107,7 @@ public class UserControllerTest {
         String username = "userName";
         String password = "password";
 
-        when(userService.login(username, password)).thenThrow(new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
+        when(userService.login(username, password)).thenThrow(new SnsApplicationException(ErrorCode.INVALID_PASSWORD));
 
         //성공하는 경우
         mockMvc.perform(post("/api/v1/users/login")
