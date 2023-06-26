@@ -3,6 +3,7 @@ package com.study.sns.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.sns.controller.request.UserLoginRequest;
+import com.study.sns.exception.ErrorCode;
 import com.study.sns.exception.SnsApplicationException;
 import com.study.sns.model.User;
 import com.study.sns.controller.request.UserJoinRequest;
@@ -51,11 +52,11 @@ public class UserControllerTest {
     }
 
     @Test
-    void 회원가입사_이미_회원가입된_userName으로_회원가입을_하는경우_에러반환() throws Exception {
+    void 회원가입시_이미_회원가입된_userName으로_회원가입을_하는경우_에러반환() throws Exception {
         String username = "userName";
         String password = "password";
 
-        when(userService.join(username,password)).thenThrow(new SnsApplicationException());
+        when(userService.join(username,password)).thenThrow(new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
 
         //성공하는 경우
         mockMvc.perform(post("api/v1/users/join")
@@ -72,7 +73,7 @@ public class UserControllerTest {
         String username = "userName";
         String password = "password";
 
-        when(userService.login()).thenReturn("test_token");
+        when(userService.login(username, password)).thenReturn("test_token");
 
         //성공하는 경우
         mockMvc.perform(post("/api/v1/users/login")
@@ -88,7 +89,7 @@ public class UserControllerTest {
         String username = "userName";
         String password = "password";
 
-        when(userService.login(username,password)).thenThrow(new SnsApplicationException());
+        when(userService.login(username, password)).thenThrow(new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
 
         //성공하는 경우
         mockMvc.perform(post("/api/v1/users/login")
@@ -104,7 +105,7 @@ public class UserControllerTest {
         String username = "userName";
         String password = "password";
 
-        when(userService.login(username,password)).thenThrow(new SnsApplicationException());
+        when(userService.login(username, password)).thenThrow(new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
 
         //성공하는 경우
         mockMvc.perform(post("/api/v1/users/login")
