@@ -6,25 +6,28 @@ import com.study.sns.model.User;
 import com.study.sns.model.entity.UserEntity;
 import com.study.sns.repository.UserEntityRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
 
     private final UserEntityRepository userEntityRepository;
+    private final BCryptPasswordEncoder encoder;
 
-    //TODO: implement
-    public User join(String username, String password) {
+    //join을 하다 exception이 발생하면 rollback이 된다.
+    @Transactional
+    public User join(String userName, String password) {
         //회원가입하려는 userName으로 회원가입된 user가 있는지
-        userEntityRepository.findByUsername(username).ifPresent(it -> {
-            throw new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, String.format("%s is duplicated", username)); // 커스텀 에러코드 추가
+        userEntityRepository.findByUserName(userName).ifPresent(it -> {
+            throw new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, String.format("%s is duplicated", userName)); // 커스텀 에러코드 추가
         });
 
-        //회원가입 진행 = user를 등록한다.
-        UserEntity userEntity = userEntityRepository.save(UserEntity.of(username, password));
+        //회원가입 진행 = user를 등록한다. // password는 encoder를 통해 암호화해서 저장하도록 한다.
+        UserEntity userEntity = userEntityRepository.save(UserEntity.of(userName, encoder.encode(password)));
         return User.fromEntity(userEntity); //dto로 반환된 결과를 받는다.
     }
 
@@ -32,14 +35,16 @@ public class UserService {
     public String login(String username, String password) {
 
         // 회원가입 여부 체크
-        UserEntity userEntity = userEntityRepository.findByUsername(username).orElseThrow(() -> new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, ""));
+        UserEntity userEntity = userEntityRepository.findByUserName(username)
+                .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username)));
 
         // 비밀번호 체크
-        if (!userEntity.getPassword().equals(password)) {
-            throw new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, "");
+        if (!encoder.matches(password, userEntity.getPassword())) {
+            throw new SnsApplicationException(ErrorCode.INVALID_PASSWORD);
         }
 
         // jwt 토큰 생성
+
 
         return "";
     }

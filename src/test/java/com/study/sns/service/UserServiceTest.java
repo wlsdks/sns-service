@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.Optional;
 
@@ -25,6 +26,9 @@ public class UserServiceTest {
     @MockBean
     private UserEntityRepository userEntityRepository;
 
+    @MockBean
+    private BCryptPasswordEncoder encoder;
+
 
     @Test
     void 회원가입이_정상적으로_동작하는경우() {
@@ -32,7 +36,8 @@ public class UserServiceTest {
         String password = "password";
 
         //mocking
-        when(userEntityRepository.findByUsername(userName)).thenReturn(Optional.empty()); //회원가입이 된적이 없으니 empty여야한다.
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty()); //회원가입이 된적이 없으니 empty여야한다.
+        when(encoder.encode(password)).thenReturn("encrypt_password");
         when(userEntityRepository.save(any())).thenReturn(Optional.of(UserEntityFixture.get(userName, password)));
 
         Assertions.assertDoesNotThrow(() -> userService.join(userName, password));
@@ -46,7 +51,8 @@ public class UserServiceTest {
         UserEntity fixture = UserEntityFixture.get(userName, password);
 
         //mocking
-        when(userEntityRepository.findByUsername(userName)).thenReturn(Optional.of(fixture));
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
+        when(encoder.encode(password)).thenReturn("encrypt_password");
         when(userEntityRepository.save(any())).thenReturn(Optional.of(fixture));
 
         Assertions.assertThrows(SnsApplicationException.class, () -> userService.join(userName, password));
@@ -59,7 +65,7 @@ public class UserServiceTest {
 
         UserEntity fixture = UserEntityFixture.get(userName, password);
         //mocking
-        when(userEntityRepository.findByUsername(userName)).thenReturn(Optional.of(fixture));
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
 
         //로그인시 정상동작이면 error을 throw하면 안된다.
         Assertions.assertDoesNotThrow(() -> userService.login(userName, password));
@@ -71,7 +77,7 @@ public class UserServiceTest {
         String password = "password";
 
         //mocking
-        when(userEntityRepository.findByUsername(userName)).thenReturn(Optional.empty());
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.empty());
 
         Assertions.assertThrows(SnsApplicationException.class, () -> userService.login(userName, password));
     }
@@ -85,7 +91,7 @@ public class UserServiceTest {
         UserEntity fixture = UserEntityFixture.get(userName, password);
 
         //mocking
-        when(userEntityRepository.findByUsername(userName)).thenReturn(Optional.of(fixture));
+        when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(fixture));
 
         Assertions.assertThrows(SnsApplicationException.class, () -> userService.login(userName, wrongPassword));
     }
