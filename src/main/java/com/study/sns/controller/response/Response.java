@@ -3,8 +3,8 @@ package com.study.sns.controller.response;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@AllArgsConstructor
 @Getter
+@AllArgsConstructor
 public class Response<T> {
 
     private String resultCode;
