@@ -5,7 +5,9 @@ import com.study.sns.exception.SnsApplicationException;
 import com.study.sns.model.User;
 import com.study.sns.model.entity.UserEntity;
 import com.study.sns.repository.UserEntityRepository;
+import com.study.sns.util.JwtTokenUtils;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,6 +19,12 @@ public class UserService {
 
     private final UserEntityRepository userEntityRepository;
     private final BCryptPasswordEncoder encoder;
+
+    @Value("${jwt.secret-key}")
+    private String secretKey;
+
+    @Value("${jwt.expired-time-ms}")
+    private Long expiredTimeMs;
 
     //join을 하다 exception이 발생하면 rollback이 된다.
     @Transactional
@@ -32,11 +40,11 @@ public class UserService {
     }
 
     //TODO: implement > jwt 사용예정 토큰은 String
-    public String login(String username, String password) {
+    public String login(String userName, String password) {
 
         // 회원가입 여부 체크
-        UserEntity userEntity = userEntityRepository.findByUserName(username)
-                .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", username)));
+        UserEntity userEntity = userEntityRepository.findByUserName(userName)
+                .orElseThrow(() -> new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", userName)));
 
         // 비밀번호 체크
         if (!encoder.matches(password, userEntity.getPassword())) {
@@ -44,8 +52,8 @@ public class UserService {
         }
 
         // jwt 토큰 생성
+        String token = JwtTokenUtils.generateToken(userName, secretKey, expiredTimeMs);
 
-
-        return "";
+        return token;
     }
 }
