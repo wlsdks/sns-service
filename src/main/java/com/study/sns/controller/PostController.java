@@ -1,14 +1,12 @@
 package com.study.sns.controller;
 
 import com.study.sns.controller.request.PostCreateRequest;
+import com.study.sns.controller.request.PostModifyRequest;
 import com.study.sns.controller.response.Response;
 import com.study.sns.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/posts")
@@ -21,6 +19,13 @@ public class PostController {
     @PostMapping
     public Response<Void> create(@RequestBody PostCreateRequest request, Authentication authentication) {
         postService.create(request.getTitle(), request.getBody(), authentication.getName());
+        return Response.success();
+    }
+
+    // 요청보낼때 title, body값 json으로 body에 넣어서 보내줘야함
+    @PutMapping("/{postId}")
+    public Response<Void> modify(@PathVariable Integer postId, @RequestBody PostModifyRequest request, Authentication authentication) {
+        postService.modify(request.getTitle(), request.getBody(), authentication.getName(), postId);
         return Response.success();
     }
 
