@@ -26,6 +26,11 @@ public class UserService {
     @Value("${jwt.expired-time-ms}")
     private Long expiredTimeMs;
 
+    public User loadUserByUserName(String userName) {
+        return userEntityRepository.findByUserName(userName).map(User::fromEntity).orElseThrow(() ->
+                new SnsApplicationException(ErrorCode.USER_NOT_FOUND, String.format("%s not founded", userName)));
+    }
+
     //join을 하다 exception이 발생하면 rollback이 된다.
     @Transactional
     public User join(String userName, String password) {
