@@ -34,6 +34,9 @@ public class PostControllerTest {
 
         mockMvc.perform(post("/api/v1/posts")
                         .contentType(MediaType.APPLICATION_JSON)
+                        // 주어진 자바객체(PostCreateRequest)를 JSON바이트 배열로 직렬화시킨다.
+                        // writeValueAsBytes를 사용하여 JSON 데이터를 바이트 배열로 변환하면, 네트워크 전송이나 데이터 저장에 효율적으로 사용할 수 있다.
+                        // .content() 부분은 요청의 본문(content)에 JSON 데이터를 설정하는 부분이다.
                         .content(objectMapper.writeValueAsBytes(new PostCreateRequest(title, body)))
                 ).andDo(print())
                 .andExpect(status().isOk());
