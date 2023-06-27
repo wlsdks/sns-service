@@ -3,10 +3,12 @@ package com.study.sns.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.study.sns.controller.request.PostCreateRequest;
 import com.study.sns.controller.request.UserJoinRequest;
+import com.study.sns.service.PostService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -25,6 +27,9 @@ public class PostControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @MockBean
+    private PostService postService;
 
     @Test
     @WithMockUser // 인증된 유저로 요청을 날린다.
