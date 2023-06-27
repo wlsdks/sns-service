@@ -2,7 +2,9 @@ package com.study.sns.controller;
 
 import com.study.sns.controller.request.PostCreateRequest;
 import com.study.sns.controller.request.PostModifyRequest;
+import com.study.sns.controller.response.PostResponse;
 import com.study.sns.controller.response.Response;
+import com.study.sns.model.Post;
 import com.study.sns.service.PostService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -24,9 +26,9 @@ public class PostController {
 
     // 요청보낼때 title, body값 json으로 body에 넣어서 보내줘야함
     @PutMapping("/{postId}")
-    public Response<Void> modify(@PathVariable Integer postId, @RequestBody PostModifyRequest request, Authentication authentication) {
-        postService.modify(request.getTitle(), request.getBody(), authentication.getName(), postId);
-        return Response.success();
+    public Response<PostResponse> modify(@PathVariable Integer postId, @RequestBody PostModifyRequest request, Authentication authentication) {
+        Post post = postService.modify(request.getTitle(), request.getBody(), authentication.getName(), postId);
+        return Response.success(PostResponse.fromPost(post));
     }
 
 }

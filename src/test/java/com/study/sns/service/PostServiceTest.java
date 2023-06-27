@@ -78,6 +78,7 @@ public class PostServiceTest {
         //mocking
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(userEntity));
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
+        when(postEntityRepository.saveAndFlush(any())).thenReturn(postEntity);
 
         // 아무런 에러를 던져서도 안된다.
         Assertions.assertDoesNotThrow(() -> postService.modify(title, body, userName, postId));

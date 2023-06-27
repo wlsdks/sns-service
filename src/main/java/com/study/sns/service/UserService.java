@@ -6,6 +6,7 @@ import com.study.sns.model.User;
 import com.study.sns.model.entity.UserEntity;
 import com.study.sns.repository.UserEntityRepository;
 import com.study.sns.util.JwtTokenUtils;
+import io.jsonwebtoken.Jwt;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -34,7 +35,7 @@ public class UserService {
     //join을 하다 exception이 발생하면 rollback이 된다.
     @Transactional
     public User join(String userName, String password) {
-        //회원가입하려는 userName으로 회원가입된 user가 있는지
+        //회원가입하려는 userName으로 회원가입된 user가 있는지 조회한다.
         userEntityRepository.findByUserName(userName).ifPresent(it -> {
             throw new SnsApplicationException(ErrorCode.DUPLICATED_USER_NAME, String.format("%s is duplicated", userName)); // 커스텀 에러코드 추가
         });
