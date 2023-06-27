@@ -115,7 +115,6 @@ public class PostServiceTest {
         when(userEntityRepository.findByUserName(userName)).thenReturn(Optional.of(writer));
         when(postEntityRepository.findById(postId)).thenReturn(Optional.of(postEntity));
 
-        // 아무런 에러를 던져서도 안된다.
         SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> postService.modify(title, body, userName, postId));
         Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, e.getErrorCode());
     }
@@ -164,7 +163,7 @@ public class PostServiceTest {
 
         // 아무런 에러를 던져서도 안된다.
         SnsApplicationException e = Assertions.assertThrows(SnsApplicationException.class, () -> postService.delete(userName, 1));
-        Assertions.assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        Assertions.assertEquals(ErrorCode.INVALID_PERMISSION, e.getErrorCode());
     }
 
 
