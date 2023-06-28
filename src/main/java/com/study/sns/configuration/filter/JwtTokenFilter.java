@@ -56,6 +56,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     user, null, user.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            // 여기서 Context에 authentication을 넣어주면 다른 클래스에서 가져다 사용할수 있다. ex) 컨트롤러
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (RuntimeException e) {
             log.error("Error occurs while validating. {}", e.toString());
