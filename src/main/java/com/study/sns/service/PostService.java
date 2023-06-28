@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class PostService {
@@ -23,6 +25,9 @@ public class PostService {
     private final UserEntityRepository userEntityRepository;
     private final LikeEntityRepository likeEntityRepository;
 
+    /**
+     * post를 작성후 생성(db에 저장)하는 메서드
+     */
     @Transactional
     public void create(String title, String body, String userName) {
         UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() ->
@@ -30,6 +35,9 @@ public class PostService {
         postEntityRepository.save(PostEntity.of(title, body, userEntity));
     }
 
+    /**
+     * 작성한 post를 db에 업데이트시키는 메서드
+     */
     @Transactional
     public Post modify(String title, String body, String userName, Integer postId) {
         UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() ->
@@ -49,6 +57,9 @@ public class PostService {
         return Post.fromEntity(postEntityRepository.saveAndFlush(postEntity));
     }
 
+    /**
+     * post를 db에서 삭제하는 메서드
+     */
     @Transactional
     public void delete(String userName, Integer postId) {
         // user check
@@ -67,10 +78,16 @@ public class PostService {
         postEntityRepository.delete(postEntity);
     }
 
+    /**
+     * 전체 피드 list에 뿌려줄 데이터를 가져오는 메서드
+     */
     public Page<Post> list(Pageable pageable) {
         return postEntityRepository.findAll(pageable).map(Post::fromEntity);
     }
 
+    /**
+     * 나의 작성 list에 뿌려줄 데이터를 가져오는 메서드
+     */
     public Page<Post> my(String userName, Pageable pageable) {
         // user found
         UserEntity userEntity = userEntityRepository.findByUserName(userName).orElseThrow(() ->
@@ -79,6 +96,9 @@ public class PostService {
         return postEntityRepository.findAllByUser(userEntity, pageable).map(Post::fromEntity);
     }
 
+    /**
+     * like 를 db에 저장하는 메서드
+     */
     @Transactional
     public void like(Integer postId, String userName) {
         // post exist
@@ -95,5 +115,19 @@ public class PostService {
 
         // like save
         likeEntityRepository.save(LikeEntity.of(userEntity, postEntity));
+    }
+
+    /**
+     * like count를 가져오는 메서드
+     */
+    @Transactional
+    public int likeCount(Integer postId) {
+        // 1. 포스트 존재를 확인한다.
+        PostEntity postEntity = postEntityRepository.findById(postId).orElseThrow(() ->
+                new SnsApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%s not founded", postId)));
+
+        // 2. 포스트에있는 like가 몇개인지 가져온다.
+        List<LikeEntity> likeEntities = likeEntityRepository.findAllByPost(postEntity);
+        return likeEntities.size();
     }
 }
