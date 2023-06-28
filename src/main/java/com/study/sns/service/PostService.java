@@ -2,16 +2,12 @@ package com.study.sns.service;
 
 import com.study.sns.exception.ErrorCode;
 import com.study.sns.exception.SnsApplicationException;
+import com.study.sns.model.AlarmArgs;
+import com.study.sns.model.AlarmType;
 import com.study.sns.model.Comment;
 import com.study.sns.model.Post;
-import com.study.sns.model.entity.CommentEntity;
-import com.study.sns.model.entity.LikeEntity;
-import com.study.sns.model.entity.PostEntity;
-import com.study.sns.model.entity.UserEntity;
-import com.study.sns.repository.CommentEntityRepository;
-import com.study.sns.repository.LikeEntityRepository;
-import com.study.sns.repository.PostEntityRepository;
-import com.study.sns.repository.UserEntityRepository;
+import com.study.sns.model.entity.*;
+import com.study.sns.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,6 +24,7 @@ public class PostService {
     private final UserEntityRepository userEntityRepository;
     private final LikeEntityRepository likeEntityRepository;
     private final CommentEntityRepository commentEntityRepository;
+    private final AlarmEntityRepository alarmEntityRepository;
 
 
     /**
@@ -35,7 +32,7 @@ public class PostService {
      */
     @Transactional
     public void create(String title, String body, String userName) {
-        // 1. 유저가 존재하는지 체크
+        // 1. 유저가 존재하는지 체크(근데 필터과정에 이미 체크를 한다. 즉 셀렉이 2번 일어난다. -> 최적화 가능한 구역)
         UserEntity userEntity = getUserEntityOrException(userName);
         postEntityRepository.save(PostEntity.of(title, body, userEntity));
     }
@@ -100,13 +97,14 @@ public class PostService {
         PostEntity postEntity = getPostEntityOrException(postId);
         UserEntity userEntity = getUserEntityOrException(userName);
 
-        // check liked -> throw
+        // 한유저는 하나의 좋아요만 가능하도록 설계하였으니 이미 좋아요를 했다면 여러번 못하도록 예외를 던진다.
         likeEntityRepository.findByUserAndPost(userEntity, postEntity).ifPresent(it -> {
             throw new SnsApplicationException(ErrorCode.ALREADY_LIKED, String.format("userName %s already like post %d", userName, postId));
         });
 
-        // like save
+        // like save + alarm save
         likeEntityRepository.save(LikeEntity.of(userEntity, postEntity));
+        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_LIKE_ON_POST, new AlarmArgs(userEntity.getId(), postEntity.getId())));
     }
 
     /**
@@ -123,14 +121,16 @@ public class PostService {
 
     /**
      * 댓글달기 기능
+     * 알람저장 기능
      */
     @Transactional
     public void comment(Integer postId, String userName, String comment) {
         PostEntity postEntity = getPostEntityOrException(postId);
         UserEntity userEntity = getUserEntityOrException(userName);
 
-        //comment save
+        //comment save + alarm save
         commentEntityRepository.save(CommentEntity.of(userEntity, postEntity, comment));
+        alarmEntityRepository.save(AlarmEntity.of(postEntity.getUser(), AlarmType.NEW_COMMENT_ON_POST, new AlarmArgs(userEntity.getId(), postEntity.getId())));
     }
 
     /**

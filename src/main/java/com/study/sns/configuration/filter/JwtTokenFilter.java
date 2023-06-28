@@ -50,7 +50,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
             //2.get username from token
             String username = JwtTokenUtils.getUserName(token, key);
-            // TODO: check the userName is valid
+            // db에서 select가 일어남 -> 유저가 존재하는지 체크함
             User user = userService.loadUserByUserName(username);
 
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(

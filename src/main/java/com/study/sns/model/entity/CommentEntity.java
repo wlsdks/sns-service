@@ -10,7 +10,10 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 @Entity
-@Table(name = "\"comment\"")
+// 검색조건을 최적화하기위해 index를 걸어준다. comment 테이블에 post_id 인덱스를 걸어준다.
+@Table(name = "\"comment\"", indexes = {
+        @Index(name = "post_id_idx", columnList = "post_id")
+})
 @Getter
 @Setter
 @SQLDelete(sql = "UPDATE \"comment\" SET deleted_at = NOW() where id=?")
