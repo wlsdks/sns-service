@@ -127,7 +127,6 @@ public class PostService {
                 new SnsApplicationException(ErrorCode.POST_NOT_FOUND, String.format("%s not founded", postId)));
 
         // 2. 포스트에있는 like가 몇개인지 가져온다.
-        List<LikeEntity> likeEntities = likeEntityRepository.findAllByPost(postEntity);
-        return likeEntities.size();
+        return likeEntityRepository.countByPost(postEntity);
     }
 }
