@@ -25,30 +25,40 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
     private final String key;
     private final UserService userService;
+    private final static List<String> TOKEN_IN_PARAM_URLS = List.of("/api/v1/users/alarm/subscribe");
 
     // 필터생성
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        // get header
-        final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header == null || !header.startsWith("Bearer ")) {
-            log.error("Error occurs while getting header. header is null or invalid {}", request.getRequestURI());
-            filterChain.doFilter(request, response);
-            return;
-        }
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
 
+        final String token;
+
+        // 알람을 위한 subscribe api에서도 token 체크를 해야하니 지정한 url인 경우에는 request의 param에서 체크를 하도록 해줘야만 한다.
         try {
-            // 이게 토큰값이 된다.
-            final String token = header.split(" ")[1].trim();
+            if (TOKEN_IN_PARAM_URLS.contains(request.getRequestURI())) {
+                log.info("Request with {} check the query param", request.getRequestURI());
+                token = request.getQueryString().split("=")[1].trim();
+            } else {
+                // get header
+                final String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+                if (header == null || !header.startsWith("Bearer ")) {
+                    log.error("Error occurs while getting header. header is null or invalid {}", request.getRequestURI());
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+                token = header.split(" ")[1].trim();
+            }
 
-            //1.check token is valid
+            // 1.토큰의 Valid를 체크한다.
             if (JwtTokenUtils.isExpired(token, key)) {
                 log.error("Key is expired");
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            //2.get username from token
+            // 2.토큰으로부터 username을 가져온다.
             String username = JwtTokenUtils.getUserName(token, key);
             // db에서 select가 일어남 -> 유저가 존재하는지 체크함
             User user = userService.loadUserByUserName(username);
